@@ -1,24 +1,34 @@
+import { NextFunction, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { Response, Request, NextFunction } from 'express'
+import { JWT_ACCESS_KEY } from '../configs'
+import { IRequestWithUser, IUser } from '../interfaces'
 
 const middlewareController = {
-
-    verifyToken: (req: Request, res: Response, next: NextFunction) => {
+    verifyToken: async (req: IRequestWithUser, res: Response, next: NextFunction) => {
         const token = req.headers['token'] as string
+        console.log(token)
         if (token) {
             const accessToken = token.split(' ')[1]
-            console.log(accessToken)
-            jwt.verify(accessToken, process.env.JWT_ACCESS_KEY as string, (error) => {
-                if (error) {
-                    res.status(403).json('You are not authenticated')
-                }
-                next()
-            })
+            const decoded: IUser = await jwt.verify(accessToken, JWT_ACCESS_KEY) as IUser
+            console.log({ decoded })
+            req.user = decoded;
+            next()
         }
         else {
             res.status(403).json('You are not authenticated')
         }
+    },
+    verifyAdmin: (req: IRequestWithUser, res: Response, next: NextFunction) => {
+        middlewareController.verifyToken(req, res, () => {
+            if (req.user.admin) {
+                next()
+            }
+            else {
+                res.status(403).json('You are not authenticated')
+            }
+        })
     }
+
 
 }
 
