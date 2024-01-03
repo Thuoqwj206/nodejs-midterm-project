@@ -1,29 +1,19 @@
-import User from '../models/user'
-import { Request, Response } from 'express'
+import { IUser } from "../interfaces";
+import userService from "../services/userService";
 
+export class userController {
 
-const userController = {
-    getAllUser: async (req: Request, res: Response) => {
-        try {
-            const user = await User.find()
-            res.status(200).json(user)
-        } catch (error) {
-            res.status(500).json(error)
-        }
-    },
+    private userService;
 
-    deleteUser: async (req: Request, res: Response) => {
-        try {
-            const user = await User.findById(req.params.id)
-            if (!user) {
-                return res.status(404).json('Not found user')
-            }
-            res.status(200).json('Delete Successfully')
-            await user.deleteOne()
-        } catch (error) {
-            res.status(500).json(error)
-        }
+    constructor() {
+        this.userService = userService
+    }
+
+    public getAllUser = (): [IUser] => {
+        return this.userService.getAllUser
+    }
+
+    public deleteUser = () => {
+        return this.userService.deleteUser
     }
 }
-
-export default userController;

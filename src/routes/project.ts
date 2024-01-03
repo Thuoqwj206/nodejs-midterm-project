@@ -1,16 +1,14 @@
 import { Router } from "express";
-import middlewareController from "../controllers/middlewareController";
-import projectController from "../controllers/projectController";
+import middlewareController from "../services/middlewareService";
+import projectController from "../services/projectService";
 
-const router = Router()
+export const projectRouter = Router()
 
-router.get('/get', middlewareController.verifyToken, projectController.getAllProject)
-router.get('/get/:id', middlewareController.verifyToken, projectController.getProjectById)
-router.post('/create', middlewareController.verifyToken, projectController.createProject)
-router.put('/update/:id', middlewareController.verifyToken, projectController.updateProject)
-router.delete('/delete/:id', middlewareController.verifyAdmin, projectController.deleteProject)
-router.put('/add-member/:id', middlewareController.verifyAdmin, projectController.addProjectMember)
-router.put('/delete-member/:id', middlewareController.verifyAdmin, projectController.deleteMemberFromProject)
+projectRouter.get('/get', middlewareController.verifyToken, projectController.getAllProject)
+projectRouter.get('/get/:id', middlewareController.verifyToken, projectController.getProjectById)
+projectRouter.post('/create', middlewareController.verifyToken, projectController.createProject)
+projectRouter.put('/update/:id', middlewareController.verifyToken, projectController.updateProject)
+projectRouter.delete('/delete/:id', middlewareController.verifyAdmin, projectController.deleteProject)
+projectRouter.put('/add-member/:id', middlewareController.verifyAdmin, projectController.addProjectMember)
+projectRouter.put('/delete-member/:id', middlewareController.verifyAdmin, projectController.deleteMemberFromProject)
 
-
-export default router;
