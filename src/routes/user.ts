@@ -1,8 +1,9 @@
 import { Router } from "express";
-import userController from "../services/userService";
-import middlewareController from "../services/middlewareService";
+import { MiddlewareController, UserController } from "../controllers";
 
 export const userRouter = Router()
+const user = new UserController()
+const middleware = new MiddlewareController()
 
-userRouter.get('/get', middlewareController.verifyToken, userController.getAllUser)
-userRouter.delete('/delete/:id', middlewareController.verifyAdmin, userController.deleteUser)
+userRouter.get('/get', middleware.verifyToken, user.getAllUser)
+userRouter.delete('/delete/:id', middleware.verifyAdmin, user.deleteUser)

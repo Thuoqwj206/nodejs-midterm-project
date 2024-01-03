@@ -1,4 +1,4 @@
 export const userMessages = {
-    404: 'Not found User',
+    NOT_FOUND: 'Not found User',
     DELETE: 'Deleted Successfully'
 }
