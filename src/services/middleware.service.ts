@@ -3,26 +3,27 @@ import jwt from 'jsonwebtoken'
 import { JWT_ACCESS_KEY } from '../configs'
 import { IUser } from '../interfaces'
 
-export class MiddlewareService {
-    async verifyToken(token: string) {
-        if (token) {
-            const accessToken = token.split(' ')[1]
-            const decoded: IUser = await jwt.verify(accessToken, JWT_ACCESS_KEY) as IUser
-            return { isSuccess: true, decoded }
-        }
-        else {
-            return { isSuccess: false }
-        }
+
+export const verifyToken = async (token: string) => {
+    if (token) {
+        const accessToken = token.split(' ')[1]
+        const decoded: IUser = await jwt.verify(accessToken, JWT_ACCESS_KEY) as IUser
+        return { isSuccess: true, decoded }
     }
-    async verifyAdmin(token: string) {
-        const verifyToken = await new MiddlewareService().verifyToken(token)
-        if (verifyToken.isSuccess) {
+    else {
+        return { isSuccess: false }
+    }
+}
+
+export const verifyAdmin = async (token: string) => {
+    const result = await verifyToken(token)
+    if (result.isSuccess) {
+        if (result.decoded.isAdmin)
             return {
-                isSuccess: true, verifyToken
+                isSuccess: true, user: result.decoded
             }
-        }
         else {
             return { isSuccess: false }
         }
-    }
+    } return { isSuccess: false }
 }

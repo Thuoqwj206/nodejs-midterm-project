@@ -1,11 +1,11 @@
 import { projectMessages } from "../constant/message";
 import { Request, Response } from 'express'
-import { ProjectService } from "../services/project.service";
+import { getAllProject, getProjectById, createProject, updateProject, deleteProject, addProjectMember, deleteMemberFromProject } from "../services";
 export class ProjectController {
 
     public getAllProject = async (req: Request, res: Response) => {
         try {
-            const result = await new ProjectService().getAllProject()
+            const result = await getAllProject()
             res.status(200).json(result)
         } catch (error) {
             res.status(500).json(error)
@@ -14,7 +14,7 @@ export class ProjectController {
 
     public getProjectById = async (req: Request, res: Response) => {
         try {
-            const result = await new ProjectService().getProjectById(req.params.id)
+            const result = await getProjectById(req.params.id)
             console.log(result)
             if (result.isSuccess) {
                 res.status(200).json(result.project)
@@ -27,7 +27,7 @@ export class ProjectController {
 
     public createProject = async (req: Request, res: Response) => {
         try {
-            const result = await new ProjectService().createProject(req.body)
+            const result = await createProject(req.body)
             console.log(result)
             if (result.isSuccess) {
                 res.status(200).json(result.newProject)
@@ -39,7 +39,7 @@ export class ProjectController {
 
     public updateProject = async (req: Request, res: Response) => {
         try {
-            const result = await new ProjectService().updateProject(req.body, req.params.id)
+            const result = await updateProject(req.body, req.params.id)
             if (result.isSuccess) {
                 res.status(200).json(result.updateProject)
             }
@@ -51,7 +51,7 @@ export class ProjectController {
 
     public deleteProject = async (req: Request, res: Response) => {
         try {
-            const result = await new ProjectService().deleteProject(req.params.id)
+            const result = await deleteProject(req.params.id)
             if (result.isSuccess) {
                 res.status(200).json(projectMessages.DELETE)
             }
@@ -63,7 +63,7 @@ export class ProjectController {
 
     public addProjectMember = async (req: Request, res: Response) => {
         try {
-            const result = await new ProjectService().addProjectMember(req.body, req.params.id)
+            const result = await addProjectMember(req.body, req.params.id)
             if (result.isSuccess) {
                 res.status(200).json(result.updatedProject)
             } else {
@@ -76,7 +76,7 @@ export class ProjectController {
 
     public deleteMemberFromProject = async (req: Request, res: Response) => {
         try {
-            const result = await new ProjectService().deleteMemberFromProject(req.body, req.params.id)
+            const result = await deleteMemberFromProject(req.body, req.params.id)
             if (result.isSuccess) {
                 res.status(200).json(result.updatedProject)
             }

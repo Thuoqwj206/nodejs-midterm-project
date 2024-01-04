@@ -1,18 +1,12 @@
 import e, { Request, Response } from 'express'
 import { userMessages } from '../constant/message';
-import { UserService } from '../services';
+import { getAllUser, deleteUser } from '../services';
 
 export class UserController {
 
-    // private userService: UserService;
-
-    // constructor() {
-    //     this.userService = new UserService()
-    // }
-
     async getAllUser(req: Request, res: Response) {
         try {
-            const result = await new UserService().getAllUser()
+            const result = await getAllUser()
             await res.status(200).json(result)
         } catch (error) {
             res.status(500).json(error)
@@ -21,7 +15,7 @@ export class UserController {
 
     async deleteUser(req: Request, res: Response) {
         try {
-            const result = await new UserService().deleteUser(req.params.id)
+            const result = await deleteUser(req.params.id)
             if (result.isSuccess) {
                 res.status(200).json(userMessages.DELETE)
             }

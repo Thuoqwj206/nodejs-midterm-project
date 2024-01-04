@@ -1,17 +1,11 @@
 import { authMessages } from "../constant/message";
-import { AuthService } from "../services/auth.service";
 import { Request, Response } from 'express'
+import { registerUSer, loginUser, logoutUser } from "../services";
 
 export class AuthController {
-    private authService: AuthService
-
-    // constructor(authService: AuthService) {
-    //     this.authService = authService;
-    // }
-
     public async registerUser(req: Request, res: Response) {
         try {
-            const result = await new AuthService().registerUSer(req.body)
+            const result = await registerUSer(req.body)
             if (result) {
                 res.status(200).json(result)
             }
@@ -25,7 +19,7 @@ export class AuthController {
 
     public async loginUser(req: Request, res: Response) {
         try {
-            const result = await new AuthService().loginUser(req.body)
+            const result = await loginUser(req.body)
             if (result.isSuccess) {
                 res.status(200).json(result.data)
             }
@@ -41,6 +35,6 @@ export class AuthController {
     }
 
     async logoutUser() {
-        return this.authService.logoutUser
+        return logoutUser
     }
 }
