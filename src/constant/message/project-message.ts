@@ -1,4 +1,4 @@
 export const projectMessages = {
-    404: 'Not found Project',
+    NOT_FOUND: 'Not found Project',
     DELETE: 'Deleted Successfully'
 }

@@ -1,5 +1,9 @@
 import { Schema, model } from "mongoose";
-
+enum TaskType {
+    Default = 'white',
+    Bug = 'red',
+    Feature = 'green',
+}
 const taskSchema = new Schema({
     project: {
         type: Schema.Types.ObjectId,
@@ -12,7 +16,9 @@ const taskSchema = new Schema({
     },
     type: {
         type: String,
-        required: true
+        enum: Object.values(TaskType),
+        default: TaskType.Default,
+        required: true,
     },
     priority: {
         type: String,
@@ -20,21 +26,23 @@ const taskSchema = new Schema({
     },
     status: {
         type: String,
-        required: true
+        required: true,
+        default: 'new',
     },
     assignee: {
         type: Schema.Types.ObjectId,
         ref: 'User',
+        default: 'me',
         required: true
     },
     startDate: {
         type: Date,
-        default: Date.now,
         required: true
     },
     endDate: {
         type: Date,
         required: true
+
     }
 }, { timestamps: true })
 

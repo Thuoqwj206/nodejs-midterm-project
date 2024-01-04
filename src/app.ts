@@ -1,4 +1,4 @@
-import express, { Router } from 'express'
+import express from 'express'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 import cors from 'cors'
@@ -14,7 +14,7 @@ dotenv.config()
 const port = PORT
 mongoose.connect(process.env.MONGODB as string)
 
-app.use('', allRouter)
+app.use('/', allRouter)
 app.listen(port, () => {
     console.log(`Sever is running on port ${port}`)
 })
