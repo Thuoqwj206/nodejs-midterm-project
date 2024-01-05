@@ -1,15 +1,13 @@
 import { Types } from "mongoose";
 
-enum TaskType {
-    Default = 'white',
-    Bug = 'red',
-    Feature = 'green',
+export enum TaskType {
+    Default = 'WHITE',
+    Bug = 'RED',
+    Feature = 'GREEN',
 }
 
 export interface ITask {
-    _id: Types.ObjectId;
     name: string;
-    type: TaskType;
     priority: string;
     status: string;
     startDate: Date;

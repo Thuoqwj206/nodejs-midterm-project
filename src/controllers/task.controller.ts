@@ -4,6 +4,7 @@ import { createTask, deleteTask, getAllTaskForProject, getAllTaskForUser, update
 export class TaskController {
 
     async getAllTaskForUser(req: Request, res: Response) {
+        console.log(req.body)
         const result = await getAllTaskForUser(req.params.id)
         if (result) {
             res.status(200).json(result)
@@ -40,7 +41,7 @@ export class TaskController {
     async deleteTask(req: Request, res: Response) {
         const result = await deleteTask(req.params.id)
         if (result.isSuccess) {
-            res.status(200)
+            res.status(200).json('deleted')
         }
         else {
             res.status(500)

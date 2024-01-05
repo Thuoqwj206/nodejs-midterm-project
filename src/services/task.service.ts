@@ -1,4 +1,4 @@
-import { ITask } from "../interfaces/task.interface";
+import { ITask } from "../interfaces";
 import Task from "../models/task";
 
 export const getAllTaskForUser = async (id: string): Promise<ITask[]> => {
@@ -12,9 +12,9 @@ export const getAllTaskForProject = async (id: string): Promise<ITask[]> => {
 }
 
 export const createTask = async (body: ITask): Promise<{ newTask: ITask, isSuccess: boolean }> => {
-    const { name, type, project, priority, status, assignee, startDate, endDate } = body
+    const { name, project, priority, status, assignee, startDate, endDate } = body
     const newTask = await new Task({
-        name, type, project, priority, status, assignee, startDate, endDate
+        name, project, priority, status, assignee, startDate, endDate
     })
     await newTask.save()
     return { newTask, isSuccess: true }

@@ -34,7 +34,13 @@ export class AuthController {
         }
     }
 
-    async logoutUser() {
-        return logoutUser
+    public async logoutUser(req: Request, res: Response) {
+        try {
+            await logoutUser(req.headers['token'] as string)
+            res.status(200).json('ook')
+
+        } catch (error) {
+            res.status(500).json(error)
+        }
     }
 }

@@ -6,10 +6,11 @@
         "sourceMap": true,
         "allowJs": true,
         "moduleResolution": "node",
-        "moduleDetection": "force",
-        // "noImplicitReturns": false,
-        // "noImplicitThis": true,
-        // "noImplicitAny": true,
+        //"moduleDetection": "force",
+        
+        //"noImplicitReturns": false,
+        "noImplicitThis": true,
+        "noImplicitAny": true,
         // "strictNullChecks": true,
         // "noUnusedLocals": true,
         "esModuleInterop": true

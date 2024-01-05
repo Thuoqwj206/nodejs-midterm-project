@@ -1,10 +1,14 @@
 import bcrypt from 'bcrypt'
 import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { authMessages } from '../constant/message'
 import { IUser } from '../interfaces'
 import User from '../models/user'
+import NodeCache from 'node-cache'
+import { JWT_ACCESS_KEY } from '../configs'
 
+
+export const myCache = new NodeCache()
+myCache.set('keyWithTTL', 'value', 864000)
 export const registerUSer = async (body: IUser) => {
     const { username, password, email } = body
     if (await User.findOne({ username: username })) {
@@ -45,17 +49,13 @@ export const loginUser = async (body: IUser) => {
                 id: user.id,
                 isAdmin: user.isAdmin
             },
-            process.env.JWT_ACCESS_KEY as string,
+            JWT_ACCESS_KEY as string,
             { expiresIn: '30d' }
         )
         return { isSuccess: true, data: { user, token } }
     }
 }
-
-export const logoutUser = async (req: Request, res: Response) => {
-    try {
-        res.status(200).json(authMessages.LOG_OUT)
-    } catch (error) {
-        res.status(500).json(error)
-    }
+export const logoutUser = async (token: string) => {
+    console.log(token)
+    myCache.set(token, 1)
 }
