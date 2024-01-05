@@ -1,6 +1,6 @@
 import { projectMessages } from "../constant/message";
 import { Request, Response } from 'express'
-import { getAllProject, getProjectById, createProject, updateProject, deleteProject, addProjectMember, deleteMemberFromProject } from "../services";
+import { getAllProject, getProjectById, createProject, updateProject, deleteProject, addProjectMember, deleteMemberFromProject, createProjectInvitation, addMemberFromInviteId } from "../services";
 export class ProjectController {
 
     public getAllProject = async (req: Request, res: Response) => {
@@ -85,6 +85,31 @@ export class ProjectController {
             }
         } catch (error) {
             console.log(error)
+        }
+    }
+
+    public createProjectInvitation = async (req: Request, res: Response) => {
+        try {
+            const result = await createProjectInvitation(req.body)
+            if (result.isSuccess) {
+                res.status(200).json(result.newInvitation.invite_id)
+            }
+        } catch (error) {
+            res.status(500).json(error)
+        }
+    }
+
+    public addMemberFromInviteId = async (req: Request, res: Response) => {
+        try {
+            const result = await addMemberFromInviteId(req.body)
+            if (result.isSuccess) {
+                res.status(200).json(result.project)
+            }
+            else {
+                res.status(404).json('Not found any active invite')
+            }
+        } catch (error) {
+
         }
     }
 }

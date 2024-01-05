@@ -1,5 +1,6 @@
 import express from 'express';
-import { authRouter, userRouter, projectRouter, taskRouter } from './index'
+import { authRouter, userRouter, projectRouter } from './index'
+import { taskRouter } from './task';
 
 export const allRouter = express.Router()
 allRouter.use('/auth', authRouter)

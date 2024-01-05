@@ -15,6 +15,8 @@ const port = PORT
 mongoose.connect(process.env.MONGODB as string)
 
 app.use('/', allRouter)
+
+
 app.listen(port, () => {
     console.log(`Sever is running on port ${port}`)
 })
