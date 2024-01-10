@@ -1,11 +1,12 @@
 import { authMessages } from "../constant/message";
 import { Request, Response } from 'express'
-import { registerUSer, loginUser, logoutUser } from "../services";
+import { AuthService } from "../services";
 
 export class AuthController {
+    private authService: AuthService = new AuthService()
     public async registerUser(req: Request, res: Response) {
         try {
-            const result = await registerUSer(req.body)
+            const result = await this.authService.registerUser(req.body)
             if (result) {
                 res.status(200).json(result)
             }
@@ -19,9 +20,11 @@ export class AuthController {
 
     public async loginUser(req: Request, res: Response) {
         try {
-            const result = await loginUser(req.body)
+            const result = await this.authService.loginUser(req.body)
             if (result.isSuccess) {
-                res.status(200).json(result.data)
+                const { user, token } = result.data
+                const { username, email, isActive } = user
+                res.status(200).json({ username, email, isActive, token })
             }
             else if (result.isUsername) {
                 res.status(404).json(authMessages.NOT_FOUND)
@@ -36,8 +39,8 @@ export class AuthController {
 
     public async logoutUser(req: Request, res: Response) {
         try {
-            await logoutUser(req.headers['token'] as string)
-            res.status(200).json('ook')
+            await this.authService.logoutUser(req.headers['authorization'] as string)
+            res.status(200).json(authMessages.LOG_OUT)
 
         } catch (error) {
             res.status(500).json(error)

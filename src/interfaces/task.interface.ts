@@ -1,17 +1,11 @@
-import { Types } from "mongoose";
 
-export enum TaskType {
-    Default = 'WHITE',
-    Bug = 'RED',
-    Feature = 'GREEN',
-}
-
-export interface ITask {
+export interface ITask extends Document {
     name: string;
-    priority: string;
-    status: string;
+    project: number;
+    priority: number;
+    status: number;
     startDate: Date;
+    type: number;
     endDate: Date;
-    project: Types.ObjectId;
-    assignee: Types.ObjectId;
+    assignee: number;
 }

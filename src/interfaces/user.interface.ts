@@ -1,9 +1,11 @@
-import { Types } from "mongoose"
 
 export interface IUser {
-    id: Types.ObjectId
     isAdmin: boolean
+    fullName: string
+    dob: Date
     username: string
     password: string
-    email: string
+    email: string,
+    isActive: boolean,
+    invite_id: string
 }

@@ -1,22 +1,29 @@
-import express from 'express'
-import dotenv from 'dotenv'
-import mongoose from 'mongoose'
-import cors from 'cors'
-import cookieParser from 'cookie-parser'
-import { PORT } from './configs'
-import { allRouter } from './routes'
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import { PORT } from './configs';
+import { allRouter } from './routes';
+import { DataSource, createConnection, getConnectionManager } from 'typeorm';
 
-const app = express()
-app.use(cors())
-app.use(cookieParser())
-app.use(express.json())
-dotenv.config()
-const port = PORT
-mongoose.connect(process.env.MONGODB as string)
+const app = express();
+app.use(cors());
+app.use(cookieParser());
+app.use(express.json());
+dotenv.config();
+const port = PORT;
 
-app.use('/', allRouter)
+createConnection()
+    .then(() => {
+        console.log('Connected to the database');
+        app.get('/', (req, res) => {
+            res.send('Hello, TypeORM!');
+        });
 
-
-app.listen(port, () => {
-    console.log(`Sever is running on port ${port}`)
-})
+        app.listen(PORT, () => {
+            console.log(`Server is running on http://localhost:${PORT}`);
+        });
+    })
+    .catch((error) => {
+        console.error('Error connecting to the database:', error);
+    });

@@ -1,128 +1,160 @@
+import { v4 as uuid4 } from 'uuid';
+import slugify from 'slugify';
+import jwt, { decode } from 'jsonwebtoken';
+import { InvitationRepository, ProjectRepository, StatusRepository, TaskRepository } from '../repositories';
+import { getCustomRepository } from 'typeorm';
+import { IDecode, IInvitation, IProject, IUser, Status } from '../interfaces';
+import { InvitationEntity, ProjectEntity, UserEntity } from '../models';
+import { JWT_ACCESS_KEY } from '../configs';
 
-import { IInvitation, IUser } from '../interfaces'
-import { IProject } from '../interfaces/project.interface'
-import Project from '../models/project'
-import Invitation from '../models/invite'
-import { stringify, v4 as uuid4 } from 'uuid'
-import { IInvite } from '../interfaces/request-with-inviteid.interface'
-import { startSession } from 'mongoose'
-import slugify from 'slugify'
-
-
-export const getAllProject = async () => {
-    const projects = await Project.find()
-    return projects
-}
-
-export const getProjectById = async (id: string) => {
-    const project = await Project.findById(id)
-    if (project) {
-        return { project, isSuccess: true }
+export class ProjectService {
+    private projectRepository: ProjectRepository
+    private taskRepository: TaskRepository
+    private statusRepository: StatusRepository
+    private invitationRepository: InvitationRepository
+    constructor() {
+        this.projectRepository = getCustomRepository(ProjectRepository)
+        this.taskRepository = getCustomRepository(TaskRepository)
+        this.statusRepository = getCustomRepository(StatusRepository)
+        this.invitationRepository = getCustomRepository(InvitationRepository)
     }
-    return { isSuccess: false }
-}
+    async getAllProject() {
+        const projects = await this.projectRepository.find();
+        if (!projects) {
+            return { isSuccess: false };
+        }
 
-export const createProject = async (body: IProject) => {
-    const { name, startDate, endDate } = body
-    const newProject = await new Project({
-        name, slug: `${slugify(name, { lower: true })}-${uuid4()}`, startDate, endDate
-    })
-    await newProject.save()
-    return { isSuccess: true, newProject }
-}
 
-export const updateProject = async (body: IProject, id: string) => {
-    const updateProject = await Project.findOneAndUpdate(
-        { _id: id },
-        { $set: body },
-        { new: true }
-    )
-    return { isSuccess: true, updateProject }
-}
-
-export const deleteProject = async (id: string) => {
-    const project = await Project.findById(id)
-    if (!project) {
-        return { isSuccess: false }
+        const projectData = Promise.all(
+            projects.map(async (project) => {
+                const { name, tasks } = project;
+                const numOfTask = project.tasks.length;
+                let closedTask: number = 0;
+                for (const task of tasks) {
+                    const taskStatus = task.status
+                    if (taskStatus && taskStatus.name === 'Closed') {
+                        closedTask += 1;
+                    }
+                }
+                const process = (closedTask / numOfTask) * 100;
+                return [{ name, numOfTask, process }];
+            })
+        );
+        return { projectData, isSuccess: true };
     }
-    await project.deleteOne()
-    return { isSuccess: true }
-}
 
-export const addProjectMember = async (body: IProject, id: string) => {
-    const { members } = body
-    const updatedProject = await Project.findOneAndUpdate(
-        { _id: id },
-        { $pushAll: { members: members } },
-        { new: true }
-    );
-    if (!updatedProject) {
-        return { isSuccess: false }
-    }
-    return { updatedProject, isSuccess: true }
-}
-
-export const deleteMemberFromProject = async (body: IProject, id: string) => {
-    const { members } = body
-    console.log(members)
-    const updatedProject = await Project.findOneAndUpdate(
-        { _id: id },
-        { $pullAll: { members: members } },
-        { new: true }
-    );
-    if (!updatedProject) {
-        return { isSuccess: false }
-    }
-    return { isSuccess: true, updatedProject }
-}
-
-export const createProjectInvitation = async (body: IInvitation) => {
-    const { creator, status, project } = body
-    const newInvitation = await new Invitation({
-        invite_id: uuid4(),
-        creator, status, project
-    })
-    if (newInvitation) {
-        await newInvitation.save()
-        return {
-            newInvitation, isSuccess: true
+    async getProjectById(id: number) {
+        const project = await this.projectRepository.findOne({ where: { id: id } });
+        if (!project) {
+            return { isSuccess: false };
+        }
+        if (project) {
+            return { id, name: project.name, taskNames: project.tasks, memberNames: project.members };
         }
     }
-    return { isSuccess: false }
-}
 
-export const addMemberFromInviteId = async (body: IInvite) => {
-    const { userId, inviteId } = body
-    const invitation: IInvitation = await Invitation.findOne({ 'invite_id': inviteId })
-    if (!invitation) {
-        return {
-            isSuccess: false
-        }
+    async createProject(body: IProject) {
+        const { name, startDate, endDate } = body;
+        const newProject = await this.projectRepository.create({
+            name,
+            slug: `${slugify(name, { lower: true })}-${uuid4()}`,
+            startDate,
+            endDate,
+        });
+        return { isSuccess: true, newProject };
     }
-    const session = await startSession()
-    session.startTransaction()
-    if (invitation.status === 'ACTIVE') {
-        const projectUpdateResult = await Project.updateOne(
-            { _id: invitation.project },
-            { $addToSet: { members: userId } },
-            { session }
-        );
 
-        const invitationUpdateResult = await Invitation.updateOne(
-            { _id: invitation.id },
-            { $set: { status: 'EXPIRED' } },
-            { session }
-        );
-        console.log(projectUpdateResult, invitationUpdateResult)
-        if (projectUpdateResult.modifiedCount === 1 && invitationUpdateResult.modifiedCount === 1) {
-            await session.commitTransaction();
-            session.endSession();
-            const project = await Project.findById(invitation.project)
-            return { isSuccess: true, project };
+    async updateProject(body: ProjectEntity, id: number) {
+        const targetProject = await this.projectRepository.findOne({ where: { id: id } })
+        const inputStartDate = new Date(body.startDate);
+        const inputEndDate = new Date(body.endDate);
+
+        if (
+            inputStartDate.getTime() < targetProject.startDate.getTime() ||
+            inputEndDate.getTime() > targetProject.endDate.getTime()
+        ) {
+            return { isSuccess: false, outDated: true };
+        }
+        const updatedProject = this.projectRepository.save({
+            ...targetProject, ...body
+        })
+        return { updatedProject, isSuccess: true }
+    }
+
+    async deleteProject(id: number) {
+        const project = await this.projectRepository.findOne({ where: { id: id } });
+        if (!project) {
+            return { isSuccess: false };
+        }
+        await this.projectRepository.delete(project);
+        return { isSuccess: true };
+    }
+
+    async addProjectMember(body: UserEntity[], id: number) {
+        const project = await this.projectRepository.findOne({ where: { id: id } });
+        if (!project) {
+            return { isSuccess: false };
         } else {
-            return {
-                isSuccess: false
-            }
+            const noActiveUsers: UserEntity[] = []
+            body.map(member => {
+                if ((project.members.includes(member)) || member.isActive == false) {
+                    noActiveUsers.push(member)
+                }
+                else {
+                    project.members.push(member)
+                }
+            })
+            return { project: project, noActiveUsers: noActiveUsers }
         }
+    }
+
+    async deleteMemberFromProject(body: UserEntity[], id: number) {
+        const project = await this.projectRepository.findOne({ where: { id: id } });
+        if (!project) {
+            return { isSuccess: false };
+        }
+        else {
+            body.map(member => {
+                if (project.members.includes(member)) {
+                    project.members.slice(body.indexOf(member), 1)
+                }
+            })
+            return { project, isSuccess: true };
+        }
+
+    }
+
+    async createProjectInvitation(token: string, id: number) {
+        const project = await this.projectRepository.findOne({ where: { id } });
+        if (project) {
+            const accessToken = token.split(' ')[1];
+            const decoded = jwt.verify(accessToken, JWT_ACCESS_KEY) as IDecode;
+            const invite_id = uuid4()
+            let invite = new InvitationEntity()
+            invite.invite_id = invite_id
+            const newInviteData = [decoded.id, id]
+            const newInvitation = this.invitationRepository.save({
+                ...invite, ...newInviteData
+            });
+            return {
+                newInvitation,
+                isSuccess: true,
+            };
+        }
+        return { isSuccess: false };
+    }
+
+    async addMemberFromInviteId(token: string, inviteId: string) {
+        const accessToken = token.split(' ')[1]
+        const decoded = jwt.verify(accessToken, JWT_ACCESS_KEY) as UserEntity
+        const invite = await this.invitationRepository.findOne({ where: { invite_id: inviteId } }) as InvitationEntity
+        const project = await this.projectRepository.findOne({ where: { id: invite.project.id } })
+
+        if (!project || invite.status === Status.expired || project.members.includes(decoded)) {
+            return { isSuccess: false }
+        }
+        project.members.push(decoded)
+        invite.status = Status.expired
+        return { project, isSuccess: true }
     }
 }

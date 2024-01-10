@@ -1,29 +1,22 @@
-import { Schema, model } from "mongoose";
-import { Status } from "../interfaces";
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { ProjectEntity } from './index';
+import { Status } from '../interfaces';
 
-const Invitation = new Schema({
-    invite_id: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    creator: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-    },
-    status: {
-        type: String,
-        enum: Status,
-        default: Status.active,
-        required: true,
-    },
-    project: {
-        type: Schema.Types.ObjectId,
-        ref: 'Project',
-        required: true,
-    }
-}, { timestamps: true })
+@Entity()
+export class InvitationEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
 
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    invite_id: string;
 
-export default model('Invitation', Invitation)
+    @Column({ type: 'varchar', length: 255, nullable: false })
+    creator: number;
+
+    @Column({ type: 'enum', enum: Status, default: Status.active })
+    status: Status;
+
+    @ManyToOne(() => ProjectEntity, { nullable: false, onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'project_id' })
+    project: ProjectEntity;
+}

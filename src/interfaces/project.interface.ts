@@ -1,9 +1,9 @@
-import { Types } from "mongoose";
 
 export interface IProject {
-    id: Types.ObjectId,
+    id: number,
     name: string,
     startDate: Date,
     members: string[],
+    tasks: string[],
     endDate: Date
 }

@@ -1,13 +1,12 @@
-import { Types } from "mongoose";
 
 export enum Status {
     expired = 'EXPIRED',
     active = 'ACTIVE'
 }
 export interface IInvitation {
-    id: Types.ObjectId,
+    id: number,
     invite_id: string,
-    creator: Types.ObjectId,
+    creator: number,
     status: Status,
-    project: Types.ObjectId
+    project: number
 }
